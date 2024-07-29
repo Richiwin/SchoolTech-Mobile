@@ -1,54 +1,38 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import Pagination from '../Common/Pagination';
+import axios from 'axios';
+import { APP_BASE_URL } from '@env';
 
 const ResetPassword = ({ navigation, route }) => {
   const { email = '' } = route.params; // Destructuring with default value
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const baseURL = APP_BASE_URL;
+  console.log('Base URL:', baseURL);
+
   // Function to handle password reset
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     if (password === confirmPassword) {
-      fetch('https://schtech.ebs-rcm.com/api/SetNewPassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      try {
+        const response = await axios.post(`${baseURL}/SetNewPassword`, {
           email: email, // Email receiving the OTP
           Password: password, // Match the key with the expected case
           ConfirmedPassword: confirmPassword, // Match the key with the expected case
-        }),
-      })
-      .then(response => response.text().then(text => {
-        console.log('Raw response:', text);
+        });
 
-        // Attempt to parse JSON, if it fails, handle it as plain text
-        try {
-          const json = JSON.parse(text);
-          return { json, success: true };
-        } catch (error) {
-          return { text, success: false };
-        }
-      }))
-      .then(({ json, text, success }) => {
-        if (success && json.success) {
-          Alert.alert('Success', 'Password reset successful', [
-            { text: 'OK', onPress: () => navigation.navigate('changedpassword') }
-          ]);
-        } else if (!success && text.includes('Password Changed successfully')) {
+        if (response.status === 200) {
           Alert.alert('Success', 'Password reset successful', [
             { text: 'OK', onPress: () => navigation.navigate('changedpassword') }
           ]);
         } else {
           Alert.alert('Failure', 'Password reset failed. Please try again.');
         }
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error:', error);
         Alert.alert('Error', 'Something went wrong. Please try again.');
-      });
+      }
     } else {
       Alert.alert('Error', 'New password and confirm password do not match.');
     }

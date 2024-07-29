@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import Pagination from '../Common/Pagination';
+import axios from 'axios';
+import { APP_BASE_URL } from '@env';
 
 const ForgotPassword = ({ navigation }) => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -16,24 +18,29 @@ const ForgotPassword = ({ navigation }) => {
 
     setLoading(true);
 
+    const baseURL = APP_BASE_URL;
+    console.log('Base URL:', baseURL);
+
+    const authService = axios.create({
+      baseURL: baseURL,
+    });
+
     try {
-      const response = await fetch('https://schtech.ebs-rcm.com/api/forgotpassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      // i Ensured that the endpoint is correctly concatenated with a single slash
+      const endpoint = 'forgotpassword';
+      const fullURL = `${baseURL}${endpoint}`;
+      console.log('Full URL:', fullURL);
 
-      const result = await response.json();
+      const response = await authService.post(endpoint, { email });
 
-      if (response.ok) {
+      if (response.status === 200) {
         navigation.navigate('verifyemailcode', { email });
       } else {
-        Alert.alert('Error', result.message || 'Something went wrong');
+        Alert.alert('Error', response.data.message || 'Something went wrong');
       }
     } catch (error) {
-      navigation.navigate('verifyemailcode', { email });
+      console.error('Error:', error);
+      Alert.alert('Error', 'An error occurred. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -50,7 +57,7 @@ const ForgotPassword = ({ navigation }) => {
       <View>
         <Text style={styles.email}>Email</Text>
         <TextInput
-          type="email"
+          keyboardType="email-address"
           placeholder="Enter your email address"
           style={styles.input}
           value={email}

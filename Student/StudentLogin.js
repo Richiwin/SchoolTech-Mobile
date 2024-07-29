@@ -90,7 +90,7 @@ const StudentLogin = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
+// style here
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',

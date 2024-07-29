@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Pagination from '../Common/Pagination';
 import axios from 'axios';
+import { APP_BASE_URL } from '@env';
 
 const SignUp = ({ navigation }) => {
   const [parentLastname, setParentLastname] = useState('');
@@ -22,8 +23,8 @@ const SignUp = ({ navigation }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const pageCount = 2;
 
-  const baseURL = process.env.APP_BASE_URL;
-  console.log(baseURL);
+  const baseURL = APP_BASE_URL;
+  console.log('Base URL:', baseURL);
 
   const authService = axios.create({
     baseURL: baseURL,
@@ -31,7 +32,11 @@ const SignUp = ({ navigation }) => {
 
   const sendOtp = async () => {
     try {
-      const response = await authService.post('/InsertParentDetails', {
+      const endpoint = 'InsertParentDetails';
+      const fullURL = `${baseURL}${endpoint}`;
+      console.log('Full URL:', fullURL);
+
+      const response = await authService.post(endpoint, {
         parentFirstName,
         parentMiddleName,
         parentLastname,
@@ -73,12 +78,13 @@ const SignUp = ({ navigation }) => {
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <StatusBar backgroundColor="#020064" barStyle="light-content" />
-      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 0, marginBottom: 10 }} />
-      <Pagination pageCount={pageCount} currentPage={currentPage} />
-      <Text style={styles.in}>Sign Up</Text>
-      <Text style={styles.Signuptext}>
-        Get started with your account while taking charge of your courses
-      </Text>
+      <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 0, marginBottom: 10 }}>
+        <Pagination pageCount={pageCount} currentPage={currentPage} />
+        <Text style={styles.in}>Sign Up</Text>
+        <Text style={styles.Signuptext}>
+          Get started with your account while taking charge of your courses
+        </Text>
+      </View>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <Text style={styles.email}>Surname</Text>
         <TextInput

@@ -1,41 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import ConfirmCode from '../Common/ConfirmCode';
+import axios from 'axios';
+import { APP_BASE_URL } from '@env';
 
 const VerifyEmailCode = ({ navigation, route }) => {
   const { email } = route.params;
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes timer
+
+  const baseURL = APP_BASE_URL;
+  console.log('Base URL:', baseURL);
 
   useEffect(() => {
     if (timeLeft === 0) {
       Alert.alert('Code expired', 'Your verification code has expired. Please request a new code.');
     }
 
-    const timer = timeLeft > 0 && setInterval(() => setTimeLeft(timeLeft - 1), 1000);
+    const timer = timeLeft > 0 && setInterval(() => setTimeLeft(prevTime => prevTime - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
   const verifyCode = async (code) => {
     try {
-      const response = await fetch('https://schtech.ebs-rcm.com/api/forgotpassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, code }),
+      const response = await axios.post(`${baseURL}/verifycode`, {
+        email,
+        code,
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         navigation.navigate('resetpassword', { email });
       } else {
         Alert.alert('Invalid verification code', 'Please try again.');
       }
     } catch (error) {
+      console.error('Error:', error);
       Alert.alert('Error', 'Failed to verify code. Please try again.');
     }
   };
 
-  const handleCodeComplete = async (code) => {
+  const handleCodeComplete = (code) => {
     if (code.length === 6) { // Assuming the code length is 6
       verifyCode(code);
     }
@@ -43,21 +46,18 @@ const VerifyEmailCode = ({ navigation, route }) => {
 
   const handleResendCode = async () => {
     try {
-      const response = await fetch('https://schtech.ebs-rcm.com/api/forgotpassword', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
+      const response = await axios.post(`${baseURL}/forgotpassword`, {
+        email,
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         Alert.alert('Success', 'A new verification code has been sent to your email.');
         setTimeLeft(300); // Reset timer to 5 minutes
       } else {
         Alert.alert('Error', 'Failed to resend verification code. Please try again.');
       }
     } catch (error) {
+      console.error('Error:', error);
       Alert.alert('Error', 'Failed to resend verification code. Please try again.');
     }
   };
@@ -65,7 +65,7 @@ const VerifyEmailCode = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Verify email</Text>
-      <Text style={styles.text}>Please create a new password for your account</Text>
+      <Text style={styles.text}>Please enter the code sent to your email to verify your account.</Text>
       <Text style={styles.email}>{email}</Text>
       <View>
         <ConfirmCode onChangeCode={handleCodeComplete} />
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   code: {
     flexDirection: 'row',
     marginTop: 60,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   textcode: {
     marginLeft: 90,

@@ -4,12 +4,12 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
   ScrollView,
   TextInput,
   StatusBar,
   Alert,
 } from 'react-native';
+import axios from 'axios'; // Ensure axios is imported
 import Pagination from '../Common/Pagination';
 
 const SignUpNext = ({ navigation, route }) => {
@@ -19,12 +19,7 @@ const SignUpNext = ({ navigation, route }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const baseURL = process.env.APP_BASE_URL;
-  console.log(baseURL);
-
-  const authService = axios.create({
-    baseURL: baseURL,
-  });
-
+  console.log('Base URL:', baseURL);
 
   const handleSignUpNext = async () => {
     if (password !== confirmPassword) {
@@ -38,40 +33,26 @@ const SignUpNext = ({ navigation, route }) => {
     }
 
     try {
-      const response = await authService.post('/InsertParentDetails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          UserName: username,
-          Email: email,
-          Password: password,
-          ConfirmPassword: confirmPassword,
-        }),
+      const response = await axios.post(`${baseURL}/InsertParentDetails`, {
+        UserName: username,
+        Email: email,
+        Password: password,
+        ConfirmPassword: confirmPassword,
       });
-
-      const contentType = response.headers.get('content-type');
-      let responseData;
-
-      if (contentType && contentType.includes('application/json')) {
-        responseData = await response.json();
-      } else {
-        responseData = await response.text();
-      }
-
-      console.log('Response data:', responseData);
-
-      if (response.ok) {
-        Alert.alert('Success', 'Registration successful');
-        navigation.navigate('confirmotp'); // Navigate to the OTP confirmation screen
-      } else {
-        const errorMessage = typeof responseData === 'string' ? responseData : (responseData.message || 'Registration failed');
-        Alert.alert('Error', errorMessage);
-      }
+      console.log('Response data:', response.data);
     } catch (error) {
-      Alert.alert('Error', 'An error occurred during registration. Please try again.');
-      console.error('Error:', error);
+      if (error.response) {
+        // Request made and server responded
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      } else if (error.request) {
+        // Request made but no response received
+        console.error('Error request:', error.request);
+      } else {
+        // Something happened in setting up the request
+        console.error('Error message:', error.message);
+      }
     }
   };
 
@@ -80,7 +61,7 @@ const SignUpNext = ({ navigation, route }) => {
   };
 
   return (
-    <View style={styles.container} behavior="padding">
+    <View style={styles.container}>
       <StatusBar backgroundColor="#020064" barStyle="light-content" />
       <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 0, marginBottom: 10 }} />
       <Pagination pageCount={2} currentPage={1} />
@@ -137,13 +118,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     height: '100%',
   },
-  sign: {
-    color: '#020064',
-    fontSize: 20,
-    fontWeight: '600',
-    marginLeft: 20,
-    marginBottom: 20,
-  },
   email: {
     color: '#6E6D8E',
     fontWeight: 'bold',
@@ -194,7 +168,6 @@ const styles = StyleSheet.create({
     marginLeft: 18,
     marginBottom: 40,
     marginRight: 10,
-    color: '#000000'
   },
   signin: {
     alignItems: 'center',
