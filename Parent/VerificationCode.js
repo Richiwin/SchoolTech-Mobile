@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import ConfirmCode from '../Common/ConfirmCode';
+import axios from 'axios'; // Ensure axios is imported
+import { APP_BASE_URL } from '@env';
 
 const VerificationCode = ({ navigation, route }) => {
   const { email } = route.params; // Ensure this line is correct
   const [timeLeft, setTimeLeft] = useState(600); // 5 minutes timer
+
+  const baseURL = APP_BASE_URL;
+  console.log('Base URL:', baseURL);
 
   useEffect(() => {
     if (timeLeft === 0) {
@@ -14,41 +19,37 @@ const VerificationCode = ({ navigation, route }) => {
     const timer = timeLeft > 0 && setInterval(() => setTimeLeft(timeLeft - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
+
   const verifyCode = async (code) => {
     try {
-      const response = await fetch('https://schtech.ebs-rcm.com/api/VerifyOTP', {
-        method: 'POST',
+      const endpoint = 'VerifyOTP';
+      const fullURL = `${baseURL}${endpoint}`;
+      console.log('Full URL:', fullURL);
+
+      const response = await axios.post(fullURL, {
+        email,
+        OTP: code,
+      }, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, OTP: code }),
       });
-  
+
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
-  
-      const contentType = response.headers.get('content-type');
-      let data;
-  
-      if (contentType && contentType.indexOf('application/json') !== -1) {
-        data = await response.json();
-      } else {
-        data = await response.text();
-      }
-  
+
+      // Handling plain text response
+      const data = response.data;
       console.log('Response data:', data);
-  
-      if (response.ok) {
-        if (typeof data === 'string') {
-          console.log('OTP sent successfully:', data);
-          Alert.alert('Success', data);
-          navigation.navigate('signupnext', { email });
-        } else if (data.success) {
+
+      if (response.status === 200) {
+        if (typeof data === 'string' && data === 'Valid OTP') {
           console.log('Code verified successfully');
+          Alert.alert('Success', 'Your code is valid.');
           navigation.navigate('signupnext', { email });
         } else {
-          console.log('Verification failed:', data.message);
-          Alert.alert('Invalid verification code', data.message || 'Please try again.');
+          console.log('Verification failed:', data);
+          Alert.alert('Invalid verification code', data || 'Please try again.');
         }
       } else {
         console.log('Response not ok:', response.status);
@@ -59,7 +60,6 @@ const VerificationCode = ({ navigation, route }) => {
       Alert.alert('Error', 'Failed to verify code. Please try again.');
     }
   };
-  
 
   const handleCodeComplete = async (code) => {
     if (code.length === 6) { // Assuming the code length is 6
@@ -69,22 +69,26 @@ const VerificationCode = ({ navigation, route }) => {
 
   const handleResendCode = async () => {
     try {
-      const response = await fetch('https://schtech.ebs-rcm.com/api/ResendOTP', {
-        method: 'POST',
+      const endpoint = 'ResendOTP';
+      const fullURL = `${baseURL}${endpoint}`;
+      console.log('Full URL:', fullURL);
+
+      const response = await axios.post(fullURL, {
+        email,
+      }, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
-      console.log('Resend response:', data);
+      console.log('Resend response status:', response.status);
+      console.log('Resend response data:', response.data);
 
-      if (response.ok) {
+      if (response.status === 200) {
         Alert.alert('Success', 'A new verification code has been sent to your email.');
         setTimeLeft(600); // Reset timer to 5 minutes
       } else {
-        Alert.alert('Error', data.message || 'Failed to resend verification code. Please try again.');
+        Alert.alert('Error', response.data.message || 'Failed to resend verification code. Please try again.');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to resend verification code. Please try again.');
@@ -136,25 +140,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 1,
     alignItems: 'center',
-    
   },
   text2: {
     color: '#6E6D8E',
     fontSize: 18,
     marginBottom: 10,
     alignItems: 'center',
-    
   },
   text1: {
     color: '#020064',
     fontSize: 18,
     marginBottom: 10,
     alignItems: 'center',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   textcontainer: {
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   email: {
     color: '#020064',
