@@ -15,15 +15,14 @@ const TeacherLogin = ({ navigation }) => {
     setShowPassword(!showPassword);
   };
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+  const handleLogin = async () => {
     try {
       await teacherLogin(username, password, navigation);
     } catch (error) {
       console.error('Login failed:', error);
     }
   };
-
+  
   return (
     <View style={styles.container} behavior="padding">
       <StatusBar backgroundColor="#020064" barStyle="light-content" />

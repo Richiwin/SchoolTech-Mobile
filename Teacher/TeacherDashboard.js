@@ -10,6 +10,20 @@ const TeacherDashboard = () => {
   const [userName, setUserName] = useState('');
   const [greeting, setGreeting] = useState('');
 
+  const fetchUserName = async () => {
+    try {
+      const storedUsername = await AsyncStorage.getItem('username');
+      if (storedUsername !== null) {
+        setUserName(storedUsername);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  fetchUserName();
+
+  
   useEffect(() => {
     const now = new Date();
     const hour = now.getUTCHours();

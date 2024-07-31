@@ -16,7 +16,11 @@ const ResetPassword = ({ navigation, route }) => {
   const handleResetPassword = async () => {
     if (password === confirmPassword) {
       try {
-        const response = await axios.post(`${baseURL}/SetNewPassword`, {
+        const endpoint = 'SetNewPassword';
+        const fullURL = `${baseURL.replace(/\/$/, '')}/${endpoint}`;
+        console.log('Full URL:', fullURL);
+  
+        const response = await axios.post(fullURL, {
           email: email, // Email receiving the OTP
           Password: password, // Match the key with the expected case
           ConfirmedPassword: confirmPassword, // Match the key with the expected case

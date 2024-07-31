@@ -1,77 +1,121 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import ConfirmCode from '../Common/ConfirmCode';
 import axios from 'axios';
-import { APP_BASE_URL } from '@env';
+import {APP_BASE_URL} from '@env';
 
-const VerifyEmailCode = ({ navigation, route }) => {
-  const { email } = route.params;
+const VerifyEmailCode = ({navigation, route}) => {
+  const {email} = route.params;
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes timer
 
   const baseURL = APP_BASE_URL;
-  console.log('Base URL:', baseURL);
 
   useEffect(() => {
     if (timeLeft === 0) {
-      Alert.alert('Code expired', 'Your verification code has expired. Please request a new code.');
+      Alert.alert(
+        'Code expired',
+        'Your verification code has expired. Please request a new code.',
+      );
     }
 
-    const timer = timeLeft > 0 && setInterval(() => setTimeLeft(prevTime => prevTime - 1), 1000);
+    const timer =
+      timeLeft > 0 &&
+      setInterval(() => setTimeLeft(prevTime => prevTime - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const verifyCode = async (code) => {
+  const verifyCode = async code => {
     try {
-      const response = await axios.post(`${baseURL}/verifycode`, {
+      const endpoint = 'verifyotp';
+      const fullURL = `${baseURL.replace(/\/$/, '')}/${endpoint}`;
+      console.log('Full URL:', fullURL);
+
+      const response = await axios.post(fullURL, {
         email,
         code,
       });
 
       if (response.status === 200) {
-        navigation.navigate('resetpassword', { email });
+        navigation.navigate('resetpassword', {email});
       } else {
-        Alert.alert('Invalid verification code', 'Please try again.');
+        Alert.alert(
+          'Invalid verification code',
+          response.data.message || 'Please try again.',
+        );
       }
     } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', 'Failed to verify code. Please try again.');
+      console.error(
+        'Error:',
+        error.response ? error.response.data : error.message,
+      );
+      Alert.alert(
+        'Error',
+        `Failed to verify code. ${
+          error.response ? error.response.data.message : error.message
+        }`,
+      );
     }
   };
 
-  const handleCodeComplete = (code) => {
-    if (code.length === 6) { // Assuming the code length is 6
+  const handleCodeComplete = code => {
+    if (code.length === 6) {
+      // Assuming the code length is 6
       verifyCode(code);
     }
   };
 
   const handleResendCode = async () => {
     try {
-      const response = await axios.post(`${baseURL}/forgotpassword`, {
+      const endpoint = 'forgotpassword';
+      const fullURL = `${baseURL.replace(/\/$/, '')}/${endpoint}`;
+      console.log('Full URL:', fullURL);
+
+      const response = await axios.post(fullURL, {
         email,
       });
 
       if (response.status === 200) {
-        Alert.alert('Success', 'A new verification code has been sent to your email.');
+        Alert.alert(
+          'Success',
+          'A new verification code has been sent to your email.',
+        );
         setTimeLeft(300); // Reset timer to 5 minutes
       } else {
-        Alert.alert('Error', 'Failed to resend verification code. Please try again.');
+        Alert.alert(
+          'Error',
+          response.data.message ||
+            'Failed to resend verification code. Please try again.',
+        );
       }
     } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', 'Failed to resend verification code. Please try again.');
+      console.error(
+        'Error:',
+        error.response ? error.response.data : error.message,
+      );
+      Alert.alert(
+        'Error',
+        `Failed to resend verification code. ${
+          error.response ? error.response.data.message : error.message
+        }`,
+      );
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Verify email</Text>
-      <Text style={styles.text}>Please enter the code sent to your email to verify your account.</Text>
+      <Text style={styles.text}>
+        Please enter the code sent to your email to verify your account.
+      </Text>
       <Text style={styles.email}>{email}</Text>
       <View>
         <ConfirmCode onChangeCode={handleCodeComplete} />
         <View style={styles.code}>
           <Text style={styles.codexp}>
-            Code expires in <Text style={styles.count}>{Math.floor(timeLeft / 60)}:{('0' + timeLeft % 60).slice(-2)}s</Text>
+            Code expires in{' '}
+            <Text style={styles.count}>
+              {Math.floor(timeLeft / 60)}:{('0' + (timeLeft % 60)).slice(-2)}s
+            </Text>
           </Text>
           <TouchableOpacity style={styles.textcode} onPress={handleResendCode}>
             <Text style={styles.recode}>Resend code</Text>

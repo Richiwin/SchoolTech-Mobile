@@ -16,7 +16,7 @@ export const teacherLogin = async (username, password, navigation) => {
       Password: password,
     };
 
-    const response = await authService.post('/PostLoginDetails', requestBody, {
+    const response = await authService.post('PostLoginDetails', requestBody, {
       headers: {
         'Content-Type': 'application/json',
       },

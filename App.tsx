@@ -12,7 +12,7 @@ import VerifyEmail from './Components/VerifyEmail';
 import ChangedPassword from './Components/ChangedPassword';
 import ResetPassword from './Components/ResetPassword';
 import VerifyEmailCode from './Components/VerifyEmailCode';
-import AccountCreated from './Components/AccountCreated';
+import AccountCreated from './Parent/AccountCreated';
 import ParentDashBoard from './Parent/ParentDashBoard';
 import StudentDashboard from './Student/StudentDashbord';
 import Feature from './Student/Feature';

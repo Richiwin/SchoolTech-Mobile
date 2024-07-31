@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios'; // Ensure axios is imported
 import Pagination from '../Common/Pagination';
+import { APP_BASE_URL } from '@env';
 
 const SignUpNext = ({ navigation, route }) => {
   const { email } = route.params;
@@ -18,7 +19,7 @@ const SignUpNext = ({ navigation, route }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const baseURL = process.env.APP_BASE_URL;
+  const baseURL = APP_BASE_URL;
   console.log('Base URL:', baseURL);
 
   const handleSignUpNext = async () => {
@@ -33,25 +34,31 @@ const SignUpNext = ({ navigation, route }) => {
     }
 
     try {
-      const response = await axios.post(`${baseURL}/InsertParentDetails`, {
+      const endpoint = 'InsertParentLoginDetails';
+      const fullURL = `${baseURL}${endpoint}`;
+      console.log('Full URL:', fullURL);
+
+      const response = await axios.post(fullURL, {
         UserName: username,
         Email: email,
         Password: password,
         ConfirmPassword: confirmPassword,
       });
+
       console.log('Response data:', response.data);
+      Alert.alert('Success', 'Account created successfully.');
     } catch (error) {
       if (error.response) {
-        // Request made and server responded
         console.error('Error response:', error.response.data);
         console.error('Error status:', error.response.status);
         console.error('Error headers:', error.response.headers);
+        Alert.alert('Error', error.response.data.message || 'An error occurred.');
       } else if (error.request) {
-        // Request made but no response received
         console.error('Error request:', error.request);
+        Alert.alert('Error', 'No response from server. Please try again later.');
       } else {
-        // Something happened in setting up the request
         console.error('Error message:', error.message);
+        Alert.alert('Error', 'An unexpected error occurred. Please try again.');
       }
     }
   };

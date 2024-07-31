@@ -13,10 +13,10 @@ const AccountCreated = ({ navigation }) => {
         <Text style={styles.text}> account. Please proceed to dashboard</Text>
         <TouchableOpacity style={styles.textButton}
         onPress={() => {
-          console.log('Navigating to dashboard screen');
-          navigation.navigate('dashboard')
+          console.log('Navigating to signin screen');
+          navigation.navigate('signin')
         }}>
-        <Text style={styles.sign}>Go to dashboard</Text>
+        <Text style={styles.sign}>Go to Login</Text>
       </TouchableOpacity>
         </View>
       )
